@@ -37,7 +37,8 @@ Each project is fully functional and ready to explore in your browser.
 
 ## 📬 Contact
 [![GitHub](https://img.shields.io/badge/GitHub-181717?style=for-the-badge&logo=github&logoColor=white)](https://github.com/harsh0717vj)
-[![Linkedin](https://img.shields.io/badge/Linkedin-181717?style=for-the-badge&logo=github&logoColor=white)](https://www.linkedin.com/in/harsh-vardhan-b6a912325/)
+[![LinkedIn](https://img.shields.io/badge/LinkedIn-0A66C2?style=for-the-badge&logo=linkedin&logoColor=white)](https://www.linkedin.com/in/harsh-vardhan-b6a912325/)
+
 ---
 
 ## 📜 License
