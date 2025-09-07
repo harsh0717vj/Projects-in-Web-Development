@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>AI-Powered Timetable Grid Scheduler</title>
+<style>
+  body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    max-width: 1000px;
+    margin: 30px auto;
+    padding: 20px;
+    background: #f9fafb;
+    color: #333;
+  }
+  h1, h2 {
+    text-align: center;
+    color: #2c3e50;
+  }
+  form, .table-container {
+    background: #fff;
+    padding: 20px 30px;
+    border-radius: 10px;
+    box-shadow: 0 4px 10px rgb(0 0 0 / 0.1);
+    margin-bottom: 25px;
+  }
+  label {
+    display: block;
+    margin: 10px 0 6px;
+    font-weight: 600;
+    color: #34495e;
+  }
+  input[type="text"], input[type="number"], select {
+    width: 200px;
+    padding: 8px;
+    border-radius: 6px;
+    border: 1px solid #ccd6dd;
+    font-size: 1em;
+  }
+  button {
+    margin-top: 15px;
+    padding: 10px 25px;
+    font-weight: 600;
+    background-color: #2980b9;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 1em;
+  }
+  button:hover {
+    background-color: #1c5980;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 4px 10px rgb(0 0 0 / 0.1);
+  }
+  th, td {
+    border: 1px solid #ddd;
+    padding: 8px;
+    text-align: center;
+    font-size: 0.9em;
+  }
+  th {
+    background-color: #2980b9;
+    color: white;
+    user-select: none;
+  }
+  tbody tr:hover {
+    background-color: #f0f8ff;
+  }
+  .small-input {
+    width: 50px;
+    margin-left: 10px;
+  }
+</style>
+</head>
+<body>
+
+<h1>AI-Powered Timetable Grid Scheduler</h1>
+
+<form id="classForm">
+  <label>Subject Name:
+    <input type="text" id="subjectName" required placeholder="e.g. Mathematics" />
+  </label>
+  <label>Batch (e.g., S1, S2):
+    <select id="batchId">
+      <option value="S1">S1</option>
+      <option value="S2">S2</option>
+    </select>
+  </label>
+  <label>Faculty:
+    <input type="text" id="facultyName" required placeholder="e.g. Prof A" />
+  </label>
+  <label>Room:
+    <input type="text" id="roomName" required placeholder="e.g. Room A" />
+  </label>
+  <label>
+    Priority (1-10):
+    <input type="number" id="priority" min="1" max="10" value="5" class="small-input" />
+  </label>
+  <button type="submit">Add Subject</button>
+</form>
+
+<h2>Subjects to Schedule</h2>
+<ul id="subjectList"></ul>
+
+<button onclick="generateTimetable()">Generate Timetable</button>
+
+<h2>Generated Timetable</h2>
+<div class="table-container">
+<table id="timetableTable">
+  <thead>
+    <tr>
+      <th>Day</th>
+      <th>Class</th>
+      <th>10:30-11:20</th>
+      <th>11:20-12:10</th>
+      <th>12:10-01:00</th>
+      <th>01:00-01:50</th>
+      <th>01:50-02:40</th>
+      <th>02:40-03:30</th>
+    </tr>
+  </thead>
+  <tbody id="timetableBody">
+  </tbody>
+</table>
+</div>
+
+<script>
+const subjects = [];
+const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
+const periods = 7; // Number of periods displayed (7 periods as per your routine image)
+const classes = ['S1', 'S2'];
+
+// Allows adding subjects to schedule list with constraints
+document.getElementById('classForm').addEventListener('submit', function(e) {
+  e.preventDefault();
+  const subjectName = document.getElementById('subjectName').value.trim();
+  const batchId = document.getElementById('batchId').value;
+  const faculty = document.getElementById('facultyName').value.trim();
+  const room = document.getElementById('roomName').value.trim();
+  const priority = parseInt(document.getElementById('priority').value);
+  if(!subjectName || !faculty || !room || isNaN(priority) || priority < 1 || priority > 10){
+    alert('Please fill all fields correctly with valid data.');
+    return;
+  }
+  subjects.push({subjectName, batchId, faculty, room, priority});
+  updateSubjectList();
+  this.reset();  // Clear form inputs
+});
+
+// Show list of added subjects
+function updateSubjectList(){
+  const ul = document.getElementById('subjectList');
+  ul.innerHTML = '';
+  subjects.forEach((s, i) => {
+    const li = document.createElement('li');
+    li.textContent = `${s.subjectName} | Batch: ${s.batchId} | Faculty: ${s.faculty} | Room: ${s.room} | Priority: ${s.priority}`;
+    ul.appendChild(li);
+  });
+}
+
+// Scheduling algorithm: Simple priority + first fit on a 5x7x2 grid (day x period x batch)
+function generateTimetable(){
+  if(subjects.length === 0){
+    alert('Add at least one subject first.');
+    return;
+  }
+
+  // Sort subjects by priority descending
+  subjects.sort((a,b) => b.priority - a.priority);
+
+  // Initialize empty timetable: day->class->period slots = subject or null
+  const routine = {};
+  days.forEach(day => {
+    routine[day] = {};
+    classes.forEach(c => {
+      routine[day][c] = new Array(periods).fill(null);
+    });
+  });
+
+  // Track busy faculty and rooms: keys 'faculty_day_period' and 'room_day_period'
+  const busyFaculty = {};
+  const busyRoom = {};
+
+  subjects.forEach(sub => {
+    let assigned = false;
+    outer:
+    for(let d=0; d<days.length; d++){
+      let day = days[d];
+      for(let p=0; p<periods; p++){
+        let keyFac = `${sub.faculty}_${day}_${p}`;
+        let keyRoom = `${sub.room}_${day}_${p}`;
+        if(routine[day][sub.batchId][p] === null && !busyFaculty[keyFac] && !busyRoom[keyRoom]){
+          routine[day][sub.batchId][p] = sub.subjectName;
+          busyFaculty[keyFac] = true;
+          busyRoom[keyRoom] = true;
+          assigned = true;
+          break outer;
+        }
+      }
+    }
+    if(!assigned){
+      alert(`Could not schedule subject ${sub.subjectName} for batch ${sub.batchId}.`);
+    }
+  });
+
+  renderRoutineGrid(routine);
+}
+
+// Render the timetable grid as per your format
+function renderRoutineGrid(routine){
+  const tbody = document.getElementById('timetableBody');
+  tbody.innerHTML = '';
+
+  days.forEach(day => {
+    classes.forEach((cls, idx) => {
+      const tr = document.createElement('tr');
+      if(idx === 0){
+        const tdDay = document.createElement('td');
+        tdDay.rowSpan = classes.length;
+        tdDay.textContent = day;
+        tdDay.style.fontWeight = 'bold';
+        tr.appendChild(tdDay);
+      }
+      const tdClass = document.createElement('td');
+      tdClass.textContent = cls;
+      tr.appendChild(tdClass);
+
+      for(let p=0; p<periods; p++){
+        const td = document.createElement('td');
+        td.textContent = routine[day][cls][p] || '';
+        tr.appendChild(td);
+      }
+      tbody.appendChild(tr);
+    });
+  });
+}
+</script>
+</body>
+</html>
