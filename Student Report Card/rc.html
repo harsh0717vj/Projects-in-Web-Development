@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Report Card Project</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f4f4f9;
+      margin: 0;
+      padding: 20px;
+    }
+    .container {
+      max-width: 600px;
+      margin: auto;
+      background: #fff;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    }
+    h1 {
+      text-align: center;
+      margin-bottom: 20px;
+      color: #333;
+    }
+    input, button {
+      padding: 10px;
+      margin: 5px 0;
+      width: 100%;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+    }
+    button {
+      background: #007bff;
+      color: white;
+      cursor: pointer;
+      font-weight: bold;
+    }
+    button:hover {
+      background: #0056b3;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 15px;
+    }
+    table, th, td {
+      border: 1px solid #ccc;
+    }
+    th, td {
+      padding: 10px;
+      text-align: center;
+    }
+    .summary {
+      margin-top: 15px;
+      font-weight: bold;
+    }
+    .topper {
+      color: green;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>📘 Report Card</h1>
+
+    <input type="text" id="subject" placeholder="Enter Subject">
+    <input type="number" id="marks" placeholder="Enter Marks (0-100)">
+    <button onclick="addSubject()">➕ Add Subject</button>
+    <button onclick="generateReport()">📑 Generate Report</button>
+
+    <table id="reportTable" style="display:none;">
+      <thead>
+        <tr>
+          <th>Subject</th>
+          <th>Marks</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+
+    <div class="summary" id="summary"></div>
+    <div class="summary topper" id="topper"></div>
+  </div>
+
+  <script>
+    let subjects = [];
+    let marks = [];
+
+    function addSubject() {
+      const subject = document.getElementById("subject").value.trim();
+      const mark = parseInt(document.getElementById("marks").value);
+
+      if (subject && !isNaN(mark) && mark >= 0 && mark <= 100) {
+        subjects.push(subject);
+        marks.push(mark);
+
+        document.getElementById("subject").value = "";
+        document.getElementById("marks").value = "";
+        alert("Subject Added!");
+      } else {
+        alert("⚠️ Enter valid subject and marks (0-100).");
+      }
+    }
+
+    function generateReport() {
+      if (subjects.length === 0) {
+        alert("⚠️ Add at least one subject!");
+        return;
+      }
+
+      let table = document.getElementById("reportTable");
+      let tbody = table.querySelector("tbody");
+      tbody.innerHTML = "";
+
+      subjects.forEach((subj, i) => {
+        let row = `<tr><td>${subj}</td><td>${marks[i]}</td></tr>`;
+        tbody.innerHTML += row;
+      });
+
+      table.style.display = "table";
+
+      let total = marks.reduce((a, b) => a + b, 0);
+      let avg = total / marks.length;
+
+      let grade = "";
+      if (avg > 90) grade = "A+";
+      else if (avg > 80) grade = "A";
+      else if (avg > 70) grade = "B";
+      else if (avg > 60) grade = "C";
+      else if (avg > 50) grade = "D";
+      else if (avg > 40) grade = "E";
+      else grade = "F (Failed)";
+
+      document.getElementById("summary").innerHTML =
+        `Total Marks: ${total} / ${subjects.length * 100} <br> Average: ${avg.toFixed(2)} <br> Grade: ${grade}`;
+
+      let topperIndex = marks.indexOf(Math.max(...marks));
+      document.getElementById("topper").innerHTML =
+        `🏆 Topper in ${subjects[topperIndex]} with ${marks[topperIndex]} marks!`;
+    }
+  </script>
+</body>
+</html>
