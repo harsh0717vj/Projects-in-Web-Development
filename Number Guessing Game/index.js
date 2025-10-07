@@ -1,4 +1,4 @@
-// script.js
+
 let range = 100;
 let attempts = 5;
 let secretNumber = Math.floor(Math.random() * range) + 1;
