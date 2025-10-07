@@ -134,7 +134,7 @@
 <script>
 const subjects = [];
 const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
-const periods = 7; // Number of periods displayed (7 periods as per your routine image)
+const periods = 7;
 const classes = ['S1', 'S2'];
 
 // Allows adding subjects to schedule list with constraints
@@ -151,10 +151,8 @@ document.getElementById('classForm').addEventListener('submit', function(e) {
   }
   subjects.push({subjectName, batchId, faculty, room, priority});
   updateSubjectList();
-  this.reset();  // Clear form inputs
+  this.reset(); 
 });
-
-// Show list of added subjects
 function updateSubjectList(){
   const ul = document.getElementById('subjectList');
   ul.innerHTML = '';
@@ -164,18 +162,12 @@ function updateSubjectList(){
     ul.appendChild(li);
   });
 }
-
-// Scheduling algorithm: Simple priority + first fit on a 5x7x2 grid (day x period x batch)
 function generateTimetable(){
   if(subjects.length === 0){
     alert('Add at least one subject first.');
     return;
   }
-
-  // Sort subjects by priority descending
   subjects.sort((a,b) => b.priority - a.priority);
-
-  // Initialize empty timetable: day->class->period slots = subject or null
   const routine = {};
   days.forEach(day => {
     routine[day] = {};
@@ -183,8 +175,6 @@ function generateTimetable(){
       routine[day][c] = new Array(periods).fill(null);
     });
   });
-
-  // Track busy faculty and rooms: keys 'faculty_day_period' and 'room_day_period'
   const busyFaculty = {};
   const busyRoom = {};
 
@@ -212,8 +202,6 @@ function generateTimetable(){
 
   renderRoutineGrid(routine);
 }
-
-// Render the timetable grid as per your format
 function renderRoutineGrid(routine){
   const tbody = document.getElementById('timetableBody');
   tbody.innerHTML = '';
